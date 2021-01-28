@@ -1,7 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout,QHBoxLayout,QToolButton,QLineEdit,QLabel,QFileDialog
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import Qt, QSize
+import cv2
 from displayCam import *
 
 class Fenetre(QWidget):
@@ -41,18 +42,36 @@ class Fenetre(QWidget):
         print('launched')
 
     def getImagePath(self):
-        dialog = QFileDialog(self, windowTitle='Selectionner image')
+        dialog = QFileDialog(self, windowTitle='Selectionner image/video')
         dialog.setFileMode(dialog.ExistingFile)
-        dialog.setNameFilter("Image files (*.png *.jpg *.jpeg *.ppm)")
+        dialog.setNameFilter("Image files (*.png *.jpg *.jpeg *.ppm *.mp4)")
         if self.pathFinderLbl.text():
             dialog.setDirectory(self.pathFinderLbl.text())
         dialog.exec_()
         if len(dialog.selectedFiles()) > 0:
-            im = QPixmap(dialog.selectedFiles()[0])
-            self.view.setImage(im)
             self.pathFinderLbl.setText(dialog.selectedFiles()[0])
-            self.setBoundingBox(0.5, 0.5, 0.3, 0.3)
-            self.setSign("bounding box 0.5 0.5 0.3 0.3")
+            if ".mp4" in dialog.selectedFiles()[0] :
+                cap = cv2.VideoCapture(dialog.selectedFiles()[0])
+                # get total number of frames
+                totalFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+                print(totalFrames)
+                # check for valid frame number
+                while True:
+                    ret, frame = cap.read()
+                    if not frame is None:
+                        height, width, channel = frame.shape
+                        bytesPerLine = 3 * width
+                        qImg = QImage(frame.data, width, height, bytesPerLine, QImage.Format_BGR888)
+                        self.view.setImage(QPixmap.fromImage(qImg))
+                        self.setBoundingBox(0.5, 0.5, 0.3, 0.3)
+                        self.setSign("bounding box 0.5 0.5 0.3 0.3")
+                    if cv2.waitKey(20) & 0xFF == ord('q'):
+                        break
+            else :
+                im = QPixmap(dialog.selectedFiles()[0])
+                self.view.setImage(im)
+                self.setBoundingBox(0.5, 0.5, 0.3, 0.3)
+                self.setSign("bounding box 0.5 0.5 0.3 0.3")
         print(dialog.selectedFiles())
 
 

@@ -23,6 +23,6 @@ class displayCam(QGraphicsView):
         xInit = (xNormCenter - widthNorm/2.0)*width
         yInit = (yNormCenter - heightNorm/2.0)*height
         recItem = QGraphicsRectItem(QRectF(xInit, yInit, widthNorm*width, heightNorm*height))
-        recItem.setPen(QPen(Qt.red,3))
+        recItem.setPen(QPen(Qt.blue,3))
         self.scene.addItem(recItem)
 
